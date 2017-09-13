@@ -91,9 +91,11 @@ export default class chunkLinks {
       pageYOffset
     } = meta
 
-    chunkTargetEl
-      .querySelector('div')
-      .replaceWith(chunkContentEl)
+    const oldChunkEl = chunkTargetEl.querySelector('div')
+    oldChunkEl.parentNode.replaceChild(
+      chunkContentEl,
+      oldChunkEl
+    )
 
     window.scrollTo(pageXOffset, pageYOffset)
   }

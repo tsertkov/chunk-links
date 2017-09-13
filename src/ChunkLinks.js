@@ -7,6 +7,7 @@ export default class chunkLinks {
     this.options = {
       error404ChunkUrl: null,
       loadingClassName: 'chunk-loading',
+      chunkUrlSuffix: '__chunk/',
       scrollDebounceMs: 100,
       log: EMPTY_FN,
       onBeforeLoad: EMPTY_FN,
@@ -183,7 +184,7 @@ export default class chunkLinks {
       ? el.getAttribute('data-href')
       : el.getAttribute('href')
 
-    const chunkUrl = href + '__chunk/'
+    const chunkUrl = href + this.options.chunkUrlSuffix
 
     event.preventDefault()
     this.navigate(href, chunkUrl, chunkTarget)

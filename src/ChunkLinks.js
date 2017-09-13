@@ -78,7 +78,7 @@ export default class chunkLinks {
     }, title)
   }
 
-  applyChunk (chunkEl, meta, chunkTargetEl) {
+  applyChunk (chunkContentEl, meta, chunkTargetEl) {
     if ('title' in meta) document.title = meta.title
 
     const header = document.querySelector('header.header')
@@ -86,28 +86,29 @@ export default class chunkLinks {
       header.setAttribute('class', `header ${meta.header_modifier}`)
     }
 
-    chunkTargetEl.innerHTML = ''
-    chunkTargetEl.appendChild(chunkEl)
-
     const {
       pageXOffset,
       pageYOffset
     } = meta
 
+    chunkTargetEl
+      .querySelector('div')
+      .replaceWith(chunkContentEl)
+
     window.scrollTo(pageXOffset, pageYOffset)
   }
 
   parseChunkText (chunkText) {
-    const chunkEl = document
+    const chunkContentEl = document
       .createDocumentFragment()
       .appendChild(document.createElement('div'))
 
-    chunkEl.innerHTML = chunkText
-    const metaScript = chunkEl.querySelector('script[type="text/x-chunk-meta"]')
+    chunkContentEl.innerHTML = chunkText
+    const metaScript = chunkContentEl.querySelector('script[type="text/x-chunk-meta"]')
 
     let meta = {}
     if (metaScript) {
-      chunkEl.removeChild(metaScript)
+      chunkContentEl.removeChild(metaScript)
       try {
         meta = JSON.parse(metaScript.innerHTML)
       } catch (error) {
@@ -120,7 +121,7 @@ export default class chunkLinks {
     }
 
     return {
-      chunkEl,
+      chunkContentEl,
       meta
     }
   }
@@ -211,9 +212,9 @@ export default class chunkLinks {
     this.isTransitioning = true
     document.body.classList.toggle(loadingClassName)
 
-    return this.loadChunk(fullUrl, chunkUrl).then(({ chunkEl, meta }) =>
+    return this.loadChunk(fullUrl, chunkUrl).then(({ chunkContentEl, meta }) =>
       this.applyChunk(
-        chunkEl,
+        chunkContentEl,
         { ...storedMeta, ...meta },
         chunkTargetEl
       )

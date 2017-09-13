@@ -21,6 +21,13 @@ export default class chunkLinks {
   }
 
   init () {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual'
+      window.onbeforeunload = () => {
+        history.scrollRestoration = 'auto'
+      }
+    }
+
     window.addEventListener('popstate', ({ state }) => {
       const isValidState = state.chunkUrl && state.chunkTarget
       if (!isValidState) {

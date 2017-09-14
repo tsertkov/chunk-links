@@ -1,16 +1,29 @@
 {
   "name": "chunk-links",
   "version": "0.1.0",
-  "description": "",
-  "main": "src/index.js",
+  "description": "Minimalistic SPA router for static sites",
+  "main": "dist/index.js",
   "scripts": {
     "build": "rm -rf dist/*; babel -d dist src",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "karma start --single-run",
+    "dev": "karma start"
   },
-  "author": "",
+  "author": "Aleksandr Tsertkov <tsertkov@gmail.com>",
   "license": "ISC",
   "dependencies": {
     "lodash.debounce": "^4.0.8"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-stage-3": "^6.24.1",
+    "babelify": "^7.3.0",
+    "browserify": "^14.4.0",
+    "jasmine-core": "^2.8.0",
+    "karma": "^1.7.1",
+    "karma-browserify": "^5.1.1",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-jasmine": "^1.1.0",
+    "watchify": "^3.9.0"
+  }
 }

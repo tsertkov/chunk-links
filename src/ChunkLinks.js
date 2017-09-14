@@ -2,9 +2,19 @@ import debounce from 'lodash.debounce'
 
 const EMPTY_FN = () => {}
 
-export default class chunkLinks {
+export default class ChunkLinks {
   constructor (options = {}) {
+    this.isTransitioning = false
     this.options = {
+      ...this.defaultOptions,
+      ...options
+    }
+
+    this.init()
+  }
+
+  get defaultOptions () {
+    return {
       error404ChunkUrl: null,
       loadingClassName: 'chunk-loading',
       chunkUrlSuffix: '__chunk/',
@@ -12,46 +22,72 @@ export default class chunkLinks {
       log: EMPTY_FN,
       onBeforeLoad: EMPTY_FN,
       onLoad: EMPTY_FN,
-      onLoadError: EMPTY_FN,
-      ...options
+      onLoadError: EMPTY_FN
     }
-
-    this.log = this.options.log
-    this.isTransitioning = false
-    this.init()
   }
 
   init () {
-    if ('scrollRestoration' in history) {
-      history.scrollRestoration = 'manual'
+    this.initScrollRestoration()
+    window.addEventListener('scroll', this.onScroll.bind(this))
+    window.addEventListener('popstate', this.onPopstate.bind(this))
+    document.body.addEventListener('click', this.onClick.bind(this), true)
+  }
+
+  unload () {
+    // FIXME
+  }
+
+  initScrollRestoration () {
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual'
       window.onbeforeunload = () => {
-        history.scrollRestoration = 'auto'
+        window.history.scrollRestoration = 'auto'
       }
     }
+  }
 
-    window.addEventListener('popstate', ({ state }) => {
-      const isValidState = state.chunkUrl && state.chunkTarget
-      if (!isValidState) {
-        window.location.reload()
-      } else {
-        const fullUrl = window.location.pathname
-        const pageState = {
-          ...state,
-          fullUrl,
-          trigger: 'popstate'
-        }
-
-        this.log('popstate', pageState)
-        this.applyPageState(pageState)
-      }
-    })
-
-    window.addEventListener('scroll', debounce(() => {
+  onScroll () {
+    return debounce(() => {
       if (this.isTransitioning) return
       this.saveCurrentState()
-    }, this.options.scrollDebounceMs))
+    })
+  }
 
-    document.body.addEventListener('click', this.onClick.bind(this), true)
+  onPopstate ({ state }) {
+    if (!state) return
+
+    const isValidState = state.chunkUrl && state.chunkTarget
+    if (!isValidState) {
+      window.location.reload()
+      return
+    }
+
+    const fullUrl = window.location.pathname
+    const pageState = {
+      ...state,
+      fullUrl,
+      trigger: 'popstate'
+    }
+
+    this.options.log('popstate', pageState)
+    this.applyPageState(pageState)
+  }
+
+  onClick (event) {
+    const el = event.target.closest('[data-chunk-el]')
+    if (!el) return
+
+    const chunkTarget = el.getAttribute('data-chunk-el')
+    if (!chunkTarget) return
+
+    const href = el.hasAttribute('data-href')
+    ? el.getAttribute('data-href')
+    : el.getAttribute('href')
+
+    const chunkUrl = href + this.options.chunkUrlSuffix
+
+    event.preventDefault()
+    this.navigate(href, chunkUrl, chunkTarget)
   }
 
   onLoadError (fullUrl, chunkTarget) {
@@ -156,7 +192,7 @@ export default class chunkLinks {
       chunkTarget,
       trigger: 'navigate'
     }
-    this.log('navigate', pageState)
+    this.options.log('navigate', pageState)
     this.applyPageState(pageState)
   }
 
@@ -171,23 +207,6 @@ export default class chunkLinks {
       chunkTarget,
       trigger: 'redirect'
     })
-  }
-
-  onClick (event) {
-    const el = event.target.closest('[data-chunk-el]')
-    if (!el) return
-
-    const chunkTarget = el.getAttribute('data-chunk-el')
-    if (!chunkTarget) return
-
-    const href = el.hasAttribute('data-href')
-      ? el.getAttribute('data-href')
-      : el.getAttribute('href')
-
-    const chunkUrl = href + this.options.chunkUrlSuffix
-
-    event.preventDefault()
-    this.navigate(href, chunkUrl, chunkTarget)
   }
 
   applyPageState ({
@@ -213,7 +232,7 @@ export default class chunkLinks {
 
     this.options.onBeforeLoad(arguments[0])
     this.isTransitioning = true
-    document.body.classList.toggle(loadingClassName)
+    document.body.classList.add(loadingClassName)
 
     return this.loadChunk(fullUrl, chunkUrl).then(({ chunkContentEl, meta }) =>
       this.applyChunk(
@@ -222,11 +241,11 @@ export default class chunkLinks {
         chunkTargetEl
       )
     ).then(() => {
-      document.body.classList.toggle(loadingClassName)
+      document.body.classList.remove(loadingClassName)
       this.isTransitioning = false
       this.options.onLoad(arguments[0])
     }).catch(error => {
-      document.body.classList.toggle(loadingClassName)
+      document.body.classList.remove(loadingClassName)
       this.isTransitioning = false
 
       this.options.onLoadError({

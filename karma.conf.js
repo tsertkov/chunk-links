@@ -1,6 +1,6 @@
 module.exports = (config) => {
   config.set({
-    browsers: ['Chrome'],
+    browsers: ['PhantomJS'],
     frameworks: ['browserify', 'jasmine'],
     files: ['test/*.spec.js'],
     preprocessors: {

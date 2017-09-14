@@ -5,7 +5,7 @@
 ## Example
 
 ```html
-<a 
+<a
   href="/about"
   data-chunk-el="chunk-target"
 >

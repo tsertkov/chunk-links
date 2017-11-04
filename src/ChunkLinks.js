@@ -30,6 +30,8 @@ export default class chunkLinks {
     }
 
     window.addEventListener('popstate', ({ state }) => {
+      if (state === null) return
+
       const isValidState = state.chunkUrl && state.chunkTarget
       if (!isValidState) {
         window.location.reload()

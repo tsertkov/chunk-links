@@ -30,20 +30,23 @@ export default class chunkLinks {
     }
 
     window.addEventListener('popstate', ({ state }) => {
+      if (state === null) return
+
       const isValidState = state.chunkUrl && state.chunkTarget
       if (!isValidState) {
         window.location.reload()
-      } else {
-        const fullUrl = window.location.pathname
-        const pageState = {
-          ...state,
-          fullUrl,
-          trigger: 'popstate'
-        }
-
-        this.log('popstate', pageState)
-        this.applyPageState(pageState)
+        return
       }
+
+      const fullUrl = window.location.pathname
+      const pageState = {
+        ...state,
+        fullUrl,
+        trigger: 'popstate'
+      }
+
+      this.log('popstate', pageState)
+      this.applyPageState(pageState)
     })
 
     window.addEventListener('scroll', debounce(() => {
